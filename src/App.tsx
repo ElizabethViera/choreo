@@ -2,35 +2,105 @@ import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
 
+const iconTypes = [
+  "bat",
+  "bird",
+  "boat",
+  "cat",
+  "elephant",
+  "frog",
+  "plane",
+  "rhino"
+];
+
 const getPath = (name: string) => {
   return `/art-assets/${name}.png`;
 };
 
-const App: React.FC = () => {
-  const [people, setPeople] = React.useState<
-    Record<string, { posx: number; posy: number }>
-  >({ bat: { posx: 50, posy: 50 }, bird: { posx: 150, posy: 300 } });
+function useLocalStorageState<T>(
+  initial: T,
+  name: string
+): [T, (newValue: T) => void] {
+  const item = window.localStorage.getItem(name);
+  const [state, setState] = React.useState<T>(
+    item ? JSON.parse(item) : initial
+  );
+  return [
+    state,
+    newValue => {
+      setState(newValue);
+      window.localStorage.setItem(name, JSON.stringify(newValue));
+    }
+  ];
+}
 
-  const [selected, setSelected] = React.useState<string | null>(null);
+type Pos = { posx: number; posy: number };
+type FormationCoords = Record<string, Pos>;
+
+const App: React.FC = () => {
+  const [currentFormIndex, setCurrentFormIndex] = React.useState(0);
+  const [formations, setFormation] = React.useState<FormationCoords[]>([
+    {},
+    {},
+    {}
+  ]);
   return (
-    <Canvas
-      icons={Object.keys(people).map(animal => ({
-        iconType: getPath(animal),
-        posx: people[animal].posx,
-        posy: people[animal].posy,
-        selected: animal === selected,
-        onClick: () => {
-          setSelected(animal);
-        }
-      }))}
-      onClick={(x, y) => {
-        console.log(x, y);
-        if (selected) {
-          setPeople({ ...people, [selected]: { posx: x, posy: y } });
-          setSelected(null);
-        }
-      }}
-    />
+    <>
+      {formations.map((formation, index) => (
+        <button onClick={()=>{
+          setCurrentFormIndex(index)
+        }} key={index}>{index}</button>
+      ))}
+      <Formation
+        people={formations[currentFormIndex]}
+        setPeople={newPeople => {
+          const formCopy = formations.slice(0);
+          formCopy[currentFormIndex] = newPeople;
+          setFormation(formCopy);
+        }}
+      />
+    </>
+  );
+};
+
+const Formation: React.FC<{
+  people: FormationCoords;
+  setPeople: (people: FormationCoords) => void;
+}> = ({ people, setPeople }) => {
+  const [selectedPerson, setSelectedPerson] = React.useState<string | null>(
+    null
+  );
+  return (
+    <>
+      <button
+        onClick={() => {
+          if (Object.keys(people).length < iconTypes.length) {
+            let new_icon_name = iconTypes[Object.keys(people).length];
+            setPeople({ ...people, [new_icon_name]: { posx: 150, posy: 150 } });
+          }
+        }}
+      >
+        Add Person!
+      </button>
+      <Canvas
+        icons={Object.keys(people).map(animal => ({
+          iconType: getPath(animal),
+          posx: people[animal].posx,
+          posy: people[animal].posy,
+          selected: animal === selectedPerson,
+          onClick: () => {
+            setSelectedPerson(animal);
+          }
+        }))}
+        onClick={(x, y) => {
+          console.log(x, y);
+          if (selectedPerson) {
+            setPeople({ ...people, [selectedPerson]: { posx: x, posy: y } });
+            setSelectedPerson(null);
+          }
+        }}
+      />
+    </>
   );
 };
 type IconProps = {
@@ -59,8 +129,8 @@ const Icon: React.FC<IconProps> = ({
         border: selected ? "4px solid pink" : "2px solid #DDD",
         borderRadius: 40,
         position: "absolute",
-        left: posx-40,
-        top: posy-40,
+        left: posx - 40,
+        top: posy - 40,
         boxSizing: "border-box"
       }}
       src={iconType}
