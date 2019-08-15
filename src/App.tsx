@@ -39,24 +39,77 @@ type FormationCoords = Record<string, Pos>;
 
 const App: React.FC = () => {
   const [currentFormIndex, setCurrentFormIndex] = React.useState(0);
-  const [formations, setFormation] = React.useState<FormationCoords[]>([
-    {},
-    {},
-    {}
-  ]);
+  const [formations, setFormation] = useLocalStorageState<FormationCoords[]>(
+    [{}],
+    "formations"
+  );
+  const [time, setTime] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    if (time == null) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setTime((time + 1) % formations.length);
+    }, 1200);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [time, formations.length]);
   return (
     <>
       {formations.map((formation, index) => (
-        <button onClick={()=>{
-          setCurrentFormIndex(index)
-        }} key={index}>{index}</button>
+        <button
+          style={{
+            borderColor:
+              index == (time == null ? currentFormIndex : time)
+                ? "#41C0AF"
+                : "transparent"
+          }}
+          onClick={() => {
+            setCurrentFormIndex(index);
+          }}
+          key={index}
+        >
+          {index}
+        </button>
       ))}
+      <button
+        onClick={() => {
+          if (time == null) {
+            setTime(0);
+          } else {
+            setTime(null);
+          }
+        }}
+      >
+        {" "}
+        Play/Pause{" "}
+      </button>
+      <button
+        onClick={() => {
+          const newFormations = formations.slice(0);
+          newFormations.splice(
+            currentFormIndex,
+            0,
+            formations[currentFormIndex]
+          );
+          setFormation(newFormations);
+        }}
+      >
+        Create New Formation
+      </button>
       <Formation
-        people={formations[currentFormIndex]}
+        people={time == null ? formations[currentFormIndex] : formations[time]}
         setPeople={newPeople => {
           const formCopy = formations.slice(0);
           formCopy[currentFormIndex] = newPeople;
           setFormation(formCopy);
+        }}
+      />
+      <textarea
+        value={JSON.stringify(formations)}
+        onChange={e => {
+          setFormation(JSON.parse(e.target.value));
         }}
       />
     </>
@@ -126,7 +179,7 @@ const Icon: React.FC<IconProps> = ({
       style={{
         width: 80,
         height: 80,
-        border: selected ? "4px solid pink" : "2px solid #DDD",
+        border: selected ? "4px solid #41C0AF" : "2px solid #DDD",
         borderRadius: 40,
         position: "absolute",
         left: posx - 40,
@@ -142,11 +195,16 @@ const Canvas: React.FC<{
   icons: IconProps[];
   onClick: (x: number, y: number) => void;
 }> = ({ icons, onClick }) => {
+  const divRef = React.useRef((null as any) as HTMLDivElement);
   return (
     <div
+      ref={divRef}
       style={{ height: 1000, width: 1000 }}
       onClick={e => {
-        onClick(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+        onClick(
+          e.nativeEvent.clientX - divRef.current.getBoundingClientRect().left,
+          e.nativeEvent.clientY - divRef.current.getBoundingClientRect().top
+        );
       }}
     >
       {icons.map((icon, index) => (
