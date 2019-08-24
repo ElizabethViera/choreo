@@ -61,7 +61,7 @@ const App: React.FC = () => {
         <button
           style={{
             borderColor:
-              index == (time == null ? currentFormIndex : time)
+              index === (time === null ? currentFormIndex : time)
                 ? "#41C0AF"
                 : "transparent"
           }}
@@ -135,6 +135,17 @@ const Formation: React.FC<{
       >
         Add Person!
       </button>
+      <button
+        onClick={() => {
+          if (Object.keys(people).length > 0 && selectedPerson != null) {
+            const removedPeople = { ...people };
+            delete removedPeople[selectedPerson];
+            setPeople(removedPeople);
+          }
+        }}
+      >
+        Remove Person!
+      </button>
       <Canvas
         icons={Object.keys(people).map(animal => ({
           iconType: getPath(animal),
@@ -146,7 +157,6 @@ const Formation: React.FC<{
           }
         }))}
         onClick={(x, y) => {
-          console.log(x, y);
           if (selectedPerson) {
             setPeople({ ...people, [selectedPerson]: { posx: x, posy: y } });
             setSelectedPerson(null);
@@ -199,8 +209,9 @@ const Canvas: React.FC<{
   return (
     <div
       ref={divRef}
-      style={{ height: 1000, width: 1000 }}
+      style={{ height: 1000, width: 1000, position: "relative" }}
       onClick={e => {
+        console.log(e.nativeEvent.clientX, e.nativeEvent.clientY, divRef.current.getBoundingClientRect())
         onClick(
           e.nativeEvent.clientX - divRef.current.getBoundingClientRect().left,
           e.nativeEvent.clientY - divRef.current.getBoundingClientRect().top
