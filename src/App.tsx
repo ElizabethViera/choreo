@@ -1,6 +1,11 @@
 import React from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import Button from "./components/Button";
+
 import logo from "./logo.svg";
 import "./App.css";
+
+const useStyles = makeStyles(() => ({ root: {} }));
 
 const iconTypes = [
   "bat",
@@ -38,6 +43,7 @@ type Pos = { posx: number; posy: number };
 type FormationCoords = Record<string, Pos>;
 
 const App: React.FC = () => {
+  const classes = useStyles();
   const [currentFormIndex, setCurrentFormIndex] = React.useState(0);
   const [formations, setFormation] = useLocalStorageState<FormationCoords[]>(
     [{}],
@@ -56,9 +62,10 @@ const App: React.FC = () => {
     };
   }, [time, formations.length]);
   return (
-    <>
+    <div className={classes.root}>
       {formations.map((formation, index) => (
-        <button
+        <Button
+          variant='outlined'
           style={{
             borderColor:
               index === (time === null ? currentFormIndex : time)
@@ -71,9 +78,9 @@ const App: React.FC = () => {
           key={index}
         >
           {index}
-        </button>
+        </Button>
       ))}
-      <button
+      <Button
         onClick={() => {
           if (time == null) {
             setTime(0);
@@ -84,8 +91,8 @@ const App: React.FC = () => {
       >
         {" "}
         Play/Pause{" "}
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={() => {
           const newFormations = formations.slice(0);
           newFormations.splice(
@@ -97,7 +104,7 @@ const App: React.FC = () => {
         }}
       >
         Create New Formation
-      </button>
+      </Button>
       <Formation
         people={time == null ? formations[currentFormIndex] : formations[time]}
         setPeople={newPeople => {
@@ -112,7 +119,7 @@ const App: React.FC = () => {
           setFormation(JSON.parse(e.target.value));
         }}
       />
-    </>
+    </div>
   );
 };
 
@@ -125,7 +132,7 @@ const Formation: React.FC<{
   );
   return (
     <>
-      <button
+      <Button
         onClick={() => {
           if (Object.keys(people).length < iconTypes.length) {
             let new_icon_name = iconTypes[Object.keys(people).length];
@@ -134,8 +141,8 @@ const Formation: React.FC<{
         }}
       >
         Add Person!
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={() => {
           if (Object.keys(people).length > 0 && selectedPerson != null) {
             const removedPeople = { ...people };
@@ -145,7 +152,7 @@ const Formation: React.FC<{
         }}
       >
         Remove Person!
-      </button>
+      </Button>
       <Canvas
         icons={Object.keys(people).map(animal => ({
           iconType: getPath(animal),
