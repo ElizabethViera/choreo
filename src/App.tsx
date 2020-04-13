@@ -1,6 +1,13 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from '@material-ui/core/Toolbar';
 import Button from "./components/Button";
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
 
 import logo from "./logo.svg";
 import "./App.css";
@@ -42,6 +49,7 @@ function useLocalStorageState<T>(
 type Pos = { posx: number; posy: number };
 type FormationCoords = Record<string, Pos>;
 
+
 const App: React.FC = () => {
   const classes = useStyles();
   const [currentFormIndex, setCurrentFormIndex] = React.useState(0);
@@ -63,23 +71,28 @@ const App: React.FC = () => {
   }, [time, formations.length]);
   return (
     <div className={classes.root}>
-      {formations.map((formation, index) => (
-        <Button
-          variant='outlined'
-          style={{
-            borderColor:
-              index === (time === null ? currentFormIndex : time)
-                ? "#41C0AF"
-                : "transparent"
-          }}
-          onClick={() => {
-            setCurrentFormIndex(index);
-          }}
-          key={index}
-        >
-          {index}
-        </Button>
-      ))}
+      <AppBar position="static">
+        <Toolbar>
+
+          {/* Buttons for selecting frames */}
+
+          <FormControl component="fieldset">
+            <RadioGroup aria-label="position" name="position" value={currentFormIndex} onChange={(e) => setCurrentFormIndex(parseInt(e.target.value))} row>
+              {formations.map((formation, index) => (
+                <FormControlLabel
+                  value={index}
+                  control={<Radio color="secondary" />}
+                  label={index}
+                  labelPlacement="top"
+                />
+              ))}
+            </RadioGroup>
+          </FormControl>
+
+
+        </Toolbar>
+      </AppBar>
+
       <Button
         onClick={() => {
           if (time == null) {
@@ -112,6 +125,8 @@ const App: React.FC = () => {
           formCopy[currentFormIndex] = newPeople;
           setFormation(formCopy);
         }}
+        prevPeople={time == null ? formations[currentFormIndex - 1] || {} : {}}
+        nextPeople={time == null ? formations[currentFormIndex + 1] || {} : {}}
       />
       <textarea
         value={JSON.stringify(formations)}
@@ -126,10 +141,14 @@ const App: React.FC = () => {
 const Formation: React.FC<{
   people: FormationCoords;
   setPeople: (people: FormationCoords) => void;
-}> = ({ people, setPeople }) => {
+  nextPeople: FormationCoords;
+  prevPeople: FormationCoords;
+}> = ({ people, setPeople, nextPeople, prevPeople }) => {
   const [selectedPerson, setSelectedPerson] = React.useState<string | null>(
     null
   );
+  const [showPrev, setShowPrev] = React.useState<boolean>(false)
+  const [showNext, setShowNext] = React.useState<boolean>(false)
   return (
     <>
       <Button
@@ -153,45 +172,96 @@ const Formation: React.FC<{
       >
         Remove Person!
       </Button>
+      <Button
+
+        onClick={() => {
+          setShowPrev(!showPrev)
+        }}
+      >
+        Show/Hide Previous Formation
+      </Button>
+      <Button
+        onClick={() => {
+          setShowNext(!showNext)
+        }}
+      >
+        Show/Hide Next Formation
+      </Button>
       <Canvas
-        icons={Object.keys(people).map(animal => ({
-          iconType: getPath(animal),
-          posx: people[animal].posx,
-          posy: people[animal].posy,
-          selected: animal === selectedPerson,
-          onClick: () => {
-            setSelectedPerson(animal);
-          }
-        }))}
         onClick={(x, y) => {
           if (selectedPerson) {
-            setPeople({ ...people, [selectedPerson]: { posx: x, posy: y } });
+            setPeople({ ...people, [selectedPerson]: snapToGrid({ posx: x, posy: y }) });
             setSelectedPerson(null);
           }
         }}
-      />
+      >
+        {showPrev && Object.keys(prevPeople).map(animal => (<Icon
+          key={animal}
+          iconType={getPath(animal)}
+          posx={prevPeople[animal].posx}
+          posy={prevPeople[animal].posy}
+          opacity={0.4}
+          color="#D5E0ED"
+        />
+        ))}
+        {showNext && Object.keys(nextPeople).map(animal => (<Icon
+          key={animal}
+          iconType={getPath(animal)}
+          posx={nextPeople[animal].posx}
+          posy={nextPeople[animal].posy}
+          opacity={0.4}
+          color="#1CAFF0"
+        />
+        ))}
+        {Object.keys(people).map(animal => (<Icon
+          key={animal}
+          iconType={getPath(animal)}
+          posx={people[animal].posx}
+          posy={people[animal].posy}
+          selected={animal === selectedPerson}
+          onClick={() => {
+            setSelectedPerson(animal);
+          }}
+        />
+        ))}
+      </Canvas>
     </>
+
   );
 };
+
+function snapToGrid(pos: Pos) {
+  return {
+    posx: Math.round(pos.posx / 50) * 50,
+    posy: Math.round(pos.posy / 50) * 50
+  }
+}
+
 type IconProps = {
   iconType: string;
   posx: number;
   posy: number;
-  selected: boolean;
-  onClick: () => void;
+  selected?: boolean;
+  onClick?: () => void;
+  opacity?: number;
+  color?: string,
 };
 const Icon: React.FC<IconProps> = ({
   iconType,
   posx,
   posy,
   selected,
-  onClick
+  onClick,
+  opacity = 1,
+  color,
 }) => {
   return (
     <img
       onClick={e => {
-        onClick();
-        e.stopPropagation();
+        if (onClick) {
+          onClick();
+          e.stopPropagation();
+        }
       }}
       style={{
         width: 80,
@@ -201,7 +271,9 @@ const Icon: React.FC<IconProps> = ({
         position: "absolute",
         left: posx - 40,
         top: posy - 40,
-        boxSizing: "border-box"
+        boxSizing: "border-box",
+        opacity,
+        background: color,
       }}
       src={iconType}
     />
@@ -209,9 +281,9 @@ const Icon: React.FC<IconProps> = ({
 };
 
 const Canvas: React.FC<{
-  icons: IconProps[];
+  children: React.ReactNode;
   onClick: (x: number, y: number) => void;
-}> = ({ icons, onClick }) => {
+}> = ({ children, onClick }) => {
   const divRef = React.useRef((null as any) as HTMLDivElement);
   return (
     <div
@@ -225,9 +297,7 @@ const Canvas: React.FC<{
         );
       }}
     >
-      {icons.map((icon, index) => (
-        <Icon {...icon} key={index} />
-      ))}
+      {children}
     </div>
   );
 };
