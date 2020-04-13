@@ -1,44 +1,35 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Hi! This project is `choreo`, an app for visualizing choreography formations! I'm currently working on deploying this so you can check it out!
 
-## Available Scripts
+# How to Choreo:
 
-In the project directory, you can run:
+## Adding People and Formations
 
-### `npm start`
+You can add `people` and `formations` using the `Add Person!` and `Create New Formation` buttons. Adding a person will only add them to the current frame, but since the new icons are added in the same order, you can then add that person to the other formations, too. 
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Since a lot of times formations build off of previous formations, when you add a new formation, it will insert a copy of the currently selected formation as the next formation. (So if you're viewing formation 2, and there are 4 formations, it will create a copy of formation 2, insert it as formation 3, and bump the formations after that up a number so that there are now 5 formations.)
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+You can have up to eight people/icons. (I plan to add more, but this was the number of icons I found which look fairly distinct. Also, most of my personal use cases are around 4-7 people. I might change the icons later to fix this problem.)
 
-### `npm test`
+## Moving People
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Now that you have formations and people, you can move them around by selecting them and clicking their positions on the canvas. Underlying the canvas is an invisible grid, with grid lines 50 pixels apart. If you set a person, it will put them in the nearest grid intersection. That way, it's easier to create lines of people.
 
-### `npm run build`
+## Visualizing Sets of Formations
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+You can visualize paths that people take in two ways: When you're viewing a formation you can toggle `Show/Hide Previous Formation` which will show a light grey version of the icons in the previous formation (if it exists), and `Show/Hide Next Formation` in light blue. If you want to see the paths someone takes over time, you can also use `Play/Pause` which will cycle through formations in order. This also loops. You will not see Previous and Next Formation while in 'Play' mode, since this is a bit overwhelming.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+## Removing Persons
+You can select a person and click `Remove Person` to remove them, though I personally find that this is more for correcting when I added too many people. It's better practice to put people who are off stage on the right or left side of the screen, since in real dances, humans don't generally disappear.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Loading and Saving (and Refreshing)
+Some other things: If you want to save or load a dance, there's a textbox at the bottom which fully describes the state. The formatting is pretty important, so my recommendation is that once you have a choreographed set you're happy with, you can copy the contents into a text file to save it. (You can also edit the coordinates manually if you want, but it's not really how that's supposed to be used.) At any point, you can paste you choreo into that box, but if there was something previously there you will lose it. However, this is a solid way to organize multiple dances. If you refresh or leave and come back, your stuff will be saved unless you clear your cache. 
 
-### `npm run eject`
+# Licenses (also in the art assets folder)
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+All Origami Art Assets by ST from the Noun Project, licensed under cc3.
+https://thenounproject.com/kukish/collection/origami/
+https://creativecommons.org/licenses/by/3.0/us/legalcode
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Arrow by unlimicon from the Noun Project, licensed under cc3.
+https://thenounproject.com/search/?q=arrows&i=1569919#
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
