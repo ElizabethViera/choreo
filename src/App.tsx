@@ -128,12 +128,24 @@ const App: React.FC = () => {
         prevPeople={time == null ? formations[currentFormIndex - 1] || {} : {}}
         nextPeople={time == null ? formations[currentFormIndex + 1] || {} : {}}
       />
-      <textarea
-        value={JSON.stringify(formations)}
-        onChange={e => {
-          setFormation(JSON.parse(e.target.value));
-        }}
-      />
+      <div style={{ marginLeft: "20px", display: "flex", flexDirection: "row", alignItems: "stretch" }}>
+        <textarea
+          style={{ marginRight: "10px" }}
+          value={JSON.stringify(formations)}
+          onChange={e => {
+            try {
+              setFormation(JSON.parse(e.target.value));
+            } catch {
+            }
+          }}
+        />
+        <Button
+          onClick={() => {
+            setCurrentFormIndex(0)
+            setFormation([{}])
+          }
+          }>Clear Everything!</Button>
+      </div>
     </div>
   );
 };
@@ -149,6 +161,7 @@ const Formation: React.FC<{
   );
   const [showPrev, setShowPrev] = React.useState<boolean>(false)
   const [showNext, setShowNext] = React.useState<boolean>(false)
+  console.log(showNext, nextPeople)
   return (
     <>
       <Button
