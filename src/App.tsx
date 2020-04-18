@@ -159,6 +159,9 @@ const Formation: React.FC<{
   const [selectedPerson, setSelectedPerson] = React.useState<string | null>(
     null
   );
+  const [selectState, setSelectState] = React.useState<{ name: string, mouseStart: Pos, personStart: Pos } | null>(
+    null
+  );
   const [showPrev, setShowPrev] = React.useState<boolean>(false)
   const [showNext, setShowNext] = React.useState<boolean>(false)
   console.log(showNext, nextPeople)
@@ -201,10 +204,25 @@ const Formation: React.FC<{
         Show/Hide Next Formation
       </Button>
       <Canvas
-        onClick={(x, y) => {
-          if (selectedPerson) {
-            setPeople({ ...people, [selectedPerson]: snapToGrid({ posx: x, posy: y }) });
-            setSelectedPerson(null);
+        onMouseMove={e => {
+          if (selectState) {
+            setPeople({
+              ...people, [selectState.name]: snapToGrid({
+                posx: e.pageX - selectState.mouseStart.posx + selectState.personStart.posx,
+                posy: e.pageY - selectState.mouseStart.posy + selectState.personStart.posy,
+              })
+            });
+          }
+        }}
+        onMouseUp={e => {
+          if (selectState) {
+            setPeople({
+              ...people, [selectState.name]: snapToGrid({
+                posx: e.pageX - selectState.mouseStart.posx + selectState.personStart.posx,
+                posy: e.pageY - selectState.mouseStart.posy + selectState.personStart.posy,
+              })
+            });
+            setSelectState(null);
           }
         }}
       >
@@ -231,9 +249,9 @@ const Formation: React.FC<{
           iconType={getPath(animal)}
           posx={people[animal].posx}
           posy={people[animal].posy}
-          selected={animal === selectedPerson}
-          onClick={() => {
-            setSelectedPerson(animal);
+          selected={selectState !== null && animal === selectState.name}
+          onMouseDown={(e) => {
+            setSelectState({ name: animal, mouseStart: { posx: e.pageX, posy: e.pageY }, personStart: people[animal] });
           }}
         />
         ))}
@@ -255,7 +273,7 @@ type IconProps = {
   posx: number;
   posy: number;
   selected?: boolean;
-  onClick?: () => void;
+  onMouseDown?: (e: React.MouseEvent) => void;
   opacity?: number;
   color?: string,
 };
@@ -264,15 +282,16 @@ const Icon: React.FC<IconProps> = ({
   posx,
   posy,
   selected,
-  onClick,
+  onMouseDown,
   opacity = 1,
   color,
 }) => {
   return (
     <img
-      onClick={e => {
-        if (onClick) {
-          onClick();
+      draggable={false}
+      onMouseDown={e => {
+        if (onMouseDown) {
+          onMouseDown(e);
           e.stopPropagation();
         }
       }}
@@ -295,19 +314,25 @@ const Icon: React.FC<IconProps> = ({
 
 const Canvas: React.FC<{
   children: React.ReactNode;
-  onClick: (x: number, y: number) => void;
-}> = ({ children, onClick }) => {
+  onClick?: (x: number, y: number) => void;
+  onMouseUp?: (e: React.MouseEvent) => void;
+  onMouseMove?: (e: React.MouseEvent) => void;
+}> = ({ children, onClick, onMouseUp, onMouseMove }) => {
   const divRef = React.useRef((null as any) as HTMLDivElement);
   return (
     <div
       ref={divRef}
       style={{ height: 1000, width: 1000, position: "relative" }}
+      onMouseUp={onMouseUp}
+      onMouseMove={onMouseMove}
       onClick={e => {
         console.log(e.nativeEvent.clientX, e.nativeEvent.clientY, divRef.current.getBoundingClientRect())
-        onClick(
-          e.nativeEvent.clientX - divRef.current.getBoundingClientRect().left,
-          e.nativeEvent.clientY - divRef.current.getBoundingClientRect().top
-        );
+        if (onClick) {
+          onClick(
+            e.nativeEvent.clientX - divRef.current.getBoundingClientRect().left,
+            e.nativeEvent.clientY - divRef.current.getBoundingClientRect().top
+          );
+        }
       }}
     >
       {children}
