@@ -178,17 +178,6 @@ const Formation: React.FC<{
         Add Person!
       </Button>
       <Button
-        onClick={() => {
-          if (Object.keys(people).length > 0 && selectedPerson != null) {
-            const removedPeople = { ...people };
-            delete removedPeople[selectedPerson];
-            setPeople(removedPeople);
-          }
-        }}
-      >
-        Remove Person!
-      </Button>
-      <Button
 
         onClick={() => {
           setShowPrev(!showPrev)
